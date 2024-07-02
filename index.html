@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Radar</title>
+</head>
+<body>
+    <div class="container">
+        <div class="top-controls">
+            <select class="region-select">
+                <option>전국[4시간]</option>
+                <option>수도권[2시간]</option>
+                <option>충청권[2시간]</option>
+                <option>호남권[2시간]</option>
+                <option>경남권[2시간]</option>
+                <option>경북권[2시간]</option>
+                <option>강원권[2시간]</option>
+                <option>제주권[2시간]</option>
+                <option>동아시아[24시간]</option>
+            </select>
+            <div class="source">출처: 기상청</div> <!-- source를 중앙으로 이동 -->
+            <div class="time-info">
+                <div class="refresh-time">갱신: yyyy.mm.dd. hh:mm:ss</div>
+                <div class="now">현재: yyyy.mm.dd. hh:mm:ss</div>
+            </div>
+        </div>
+        <img id="radarImage" src="https://radar.kma.go.kr/cgi-bin/center/nph-rdr_cmp_img?cmp=HSP&color=C4&qcd=HSO&obs=ECHO&map=HB&size=1000&gis=1&legend=1&aws=1&gov=KMA&gc=T&gc_itv=60&lonlat=0&lat=35.90&lon=127.80&zoom=2&wv=1" alt="기상 레이더 이미지">
+        <div class="timestamp">yyyy. mm. dd. hh : mm</div> <!-- timestamp를 가운데로 원상복구 -->
+        <input type="range" min="0" max="100" value="0" class="slider" id="timeSlider">
+        <div class="controls">
+            <button class="control-btn">느리게</button>
+            <div class="speed-display">1x</div>
+            <button class="control-btn">빠르게</button>
+            <button class="control-btn">재생</button>
+        </div>
+        <div class="checkboxes">
+            <label><input type="checkbox" id="concentricCircles"> 동심원</label>
+            <label><input type="checkbox" id="windVector"> 바람벡터</label>
+            <label><input type="checkbox" id="terrain"> 지형</label>
+        </div>
+        <div class="kma-logo">
+            <img src="https://www.weather.go.kr/w/resources/image/mark03_22.png" alt="KMA Logo">
+        </div>
+    </div>
+</body>
+</html>
