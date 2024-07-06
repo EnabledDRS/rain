@@ -25,13 +25,13 @@
                 <div class="now">현재: yyyy.mm.dd. hh:mm:ss</div>
             </div>
         </div>    
-        <img id="radar-image" src="https://radar.kma.go.kr/cgi-bin/center/nph-rdr_cmp_img?cmp=HSP&color=C4&qcd=HSO&obs=ECHO&map=HB&size=1000&gis=1&legend=1&aws=1&gov=KMA&gc=T&gc_itv=60&lonlat=0&lat=35.90&lon=127.80&zoom=2&wv=1" alt="기상 레이더 이미지">
+        <img id="radar-image" src="" alt="기상 레이더 이미지">
         <div class="image-time">yyyy. mm. dd. hh : mm</div>
         <input type="range" min="0" max="100" value="0" class="slider" id="time-slider">
         <div class="buttom-controller">
-            <button class="speed-btn">느리게</button>
+            <button class="speed-btn" id="slower">느리게</button>
             <div class="speed-display">0.5s/frame</div>
-            <button class="speed-btn">빠르게</button>
+            <button class="speed-btn" id="faster">빠르게</button>
             <button class="pause-btn">재생</button>
         </div>
         <div class="checkboxes">
