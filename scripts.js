@@ -397,6 +397,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             lon = dmsToDecimal(lonInput);
         }
 
+        radInputValue.value = 100;
+        
         let validLat = lat >= 32 && lat <= 44;
         let validLon = lon >= 123 && lon <= 131;
         let validRad = radInputValue === '' || radInputValue > 0;
