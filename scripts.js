@@ -16,16 +16,17 @@ document.addEventListener('DOMContentLoaded', async function () {
     const latInput = document.getElementById('lat-display');
     const lonInput = document.getElementById('lon-display');
     const zoomInput = document.getElementById('zoom-display');
-    const latDownButton = document.querySelectorAll('#down-button')[0];
-    const latUpButton = document.querySelectorAll('#up-button')[0];
-    const lonDownButton = document.querySelectorAll('#down-button')[1];
-    const lonUpButton = document.querySelectorAll('#up-button')[1];
-    const zoomDownButton = document.querySelectorAll('#down-button')[2];
-    const zoomUpButton = document.querySelectorAll('#up-button')[2];
+    const latDownButton = document.getElementById('down-button-lat');
+    const latUpButton = document.getElementById('up-button-lat');
+    const lonDownButton = document.getElementById('down-button-lon');
+    const lonUpButton = document.getElementById('up-button-lon');
+    const zoomOutButton = document.getElementById('zoom-out-button');
+    const zoomInButton = document.getElementById('zoom-in-button');
+    const zeroButton = document.getElementById('zero-button');
 
     const baseURL = "https://radar.kma.go.kr/cgi-bin/center/nph-rdr_cmp_img?cmp=HSP&color=C4&qcd=HSO&obs=ECHO&map=HB&size=800&gis=1&legend=1&gov=KMA&gc=T&gc_itv=60";
     const regionConfigs = {
-        '전국[4시간]': { url: "&lonlat=0&lat=35.90&lon=127.80&zoom=2&ht=1000", interval: 5, frames: 48 },
+        '전국/선택지점[4시간]': { url: "&lonlat=0&lat=35.90&lon=127.80&zoom=2&ht=1000", interval: 5, frames: 48 },
         '수도권[2시간]': { url: "&lonlat=0&lat=37.57&lon=126.97&zoom=4.9&ht=1000", interval: 5, frames: 24 },
         '충청권[2시간]': { url: "&lonlat=0&lat=36.49&lon=127.24&zoom=4.9&ht=1000", interval: 5, frames: 24 },
         '호남권[2시간]': { url: "&lonlat=0&lat=35.17&lon=126.89&zoom=4.9&ht=1000", interval: 5, frames: 24 },
@@ -36,7 +37,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         '동아시아[24시간]': { url: "&lonlat=0&lat=33.11&lon=126.27&zoom=0.5&ht=1000", interval: 30, frames: 48 }
     };
 
-    let selectedRegionConfig = regionConfigs['전국[4시간]'];
+    let selectedRegionConfig = regionConfigs['전국/선택지점[4시간]'];
     let intervalId;
     let isPlaying = true; // Default to true for auto play
     let preloadedImages = [];
@@ -223,19 +224,26 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     function updateInputState() {
-        const isDisabled = regionSelect.value !== '전국[4시간]';
+        const isDisabled = regionSelect.value !== '전국/선택지점[4시간]';
         latInput.disabled = isDisabled;
         lonInput.disabled = isDisabled;
         zoomInput.disabled = isDisabled;
 
         if (isDisabled) {
-            latInput.placeholder = "좌표지정은";
-            lonInput.placeholder = "전국[4시간]에서";
-            zoomInput.placeholder = "가능합니다";
+            latInput.placeholder = "전국/선택지점";
+            lonInput.placeholder = "에서 좌표 지정";
+            zoomInput.placeholder = "";
         } else {
             latInput.placeholder = "위도(32°~44°)";
             lonInput.placeholder = "경도(123°~131°)";
             zoomInput.placeholder = "배율(0.5~115)";
+        }
+
+        // Update the border of the zeroButton based on input values
+        if (latInput.value || lonInput.value || zoomInput.value) {
+            zeroButton.classList.add('highlight');
+        } else {
+            zeroButton.classList.remove('highlight');
         }
     }
 
@@ -250,26 +258,32 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     latDownButton.addEventListener('click', function () {
         modifyValue(latInput, -0.01);
+        updateInputState(); // Update input state after modifying value
     });
 
     latUpButton.addEventListener('click', function () {
         modifyValue(latInput, 0.01);
+        updateInputState(); // Update input state after modifying value
     });
 
     lonDownButton.addEventListener('click', function () {
         modifyValue(lonInput, -0.01);
+        updateInputState(); // Update input state after modifying value
     });
 
     lonUpButton.addEventListener('click', function () {
         modifyValue(lonInput, 0.01);
+        updateInputState(); // Update input state after modifying value
     });
 
-    zoomDownButton.addEventListener('click', function () {
-        modifyValue(zoomInput, -0.01);
+    zoomOutButton.addEventListener('click', function () {
+        modifyValue(zoomInput, -0.1);
+        updateInputState(); // Update input state after modifying value
     });
 
-    zoomUpButton.addEventListener('click', function () {
-        modifyValue(zoomInput, 0.01);
+    zoomInButton.addEventListener('click', function () {
+        modifyValue(zoomInput, 0.1);
+        updateInputState(); // Update input state after modifying value
     });
 
     // Function to save latitude, longitude, and zoom to localStorage
@@ -301,6 +315,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     regionSelect.addEventListener('change', function () {
         selectedRegionConfig = regionConfigs[regionSelect.value];
         localStorage.setItem('region-select', regionSelect.value); // Save selected region to localStorage
+        // Clear manual lat, lon, zoom settings to give priority to dropdown selection
+        localStorage.removeItem('lat');
+        localStorage.removeItem('lon');
+        localStorage.removeItem('zoom');
+        latParam = null;
+        lonParam = null;
+        zoomParam = null;
         updateImages(true); // Force update on region change
         updateInputState(); // Update input state based on selection
     });
@@ -348,8 +369,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // 확인 버튼 클릭 이벤트 핸들러
     document.getElementById('ok-button').addEventListener('click', function () {
-        if (regionSelect.value !== '전국[4시간]') {
-            alert('전국[4시간] 옵션에서만 좌표를 설정할 수 있습니다.');
+        if (regionSelect.value !== '전국/선택지점[4시간]') {
+            alert('전국/선택지점[4시간] 옵션에서만 좌표를 설정할 수 있습니다.');
             return;
         }
 
@@ -390,19 +411,20 @@ document.addEventListener('DOMContentLoaded', async function () {
         } else {
             let currentZoom = selectedRegionConfig.url.match(/&zoom=([0-9.]+)/)[1];
             let zoom = zoomInput === '' ? currentZoom : zoomInput;
-            regionConfigs['전국[4시간]'].url = `&lonlat=0&lat=${lat}&lon=${lon}&zoom=${zoom}&ht=1000`;
-            localStorage.setItem('region-select', '전국[4시간]');
+            regionConfigs['전국/선택지점[4시간]'].url = `&lonlat=0&lat=${lat}&lon=${lon}&zoom=${zoom}&ht=1000`;
+            localStorage.setItem('region-select', '전국/선택지점[4시간]');
             saveLatLonZoom(); // Save the new values
             updateImages(true); // Force update on manual input
         }
+        updateInputState(); // Update input state after setting values
     });
 
     // 기본값 버튼 클릭 이벤트 핸들러
     document.getElementById('zero-button').addEventListener('click', function () {
-        // 기본값을 전국[4시간]으로 설정하고 interval과 frames 수정
+        // 기본값을 전국/선택지점[4시간]으로 설정하고 interval과 frames 수정
         selectedRegionConfig = { url: "&lonlat=0&lat=35.90&lon=127.80&zoom=2&ht=1000", interval: 5, frames: 24 };
-        localStorage.setItem('region-select', '전국[4시간]');
-        regionSelect.value = '전국[4시간]';  // 드롭다운 메뉴도 기본값으로 설정
+        localStorage.setItem('region-select', '전국/선택지점[4시간]');
+        regionSelect.value = '전국/선택지점[4시간]';  // 드롭다운 메뉴도 기본값으로 설정
         localStorage.removeItem('lat');
         localStorage.removeItem('lon');
         localStorage.removeItem('zoom');
