@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         } else {
             latInput.placeholder = "위도(32°~44°)";
             lonInput.placeholder = "경도(123°~131°)";
-            radInput.placeholder = "반경 (km)";
+            radInput.placeholder = "반경(km)";
         }
 
         // Update the border of the zeroButton based on input values
