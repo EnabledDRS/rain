@@ -376,9 +376,16 @@ document.addEventListener('DOMContentLoaded', async function () {
             return;
         }
 
+//-------------------------------------------------------------//
+
+//-------------------------------------------------------------//
+        
         const latInput = document.getElementById('lat-display').value;
         const lonInput = document.getElementById('lon-display').value;
         const radInputValue = document.getElementById('rad-display').value;
+
+        latInput.value = 35.90;
+        lonInput.value = 127.80;
 
         let lat = latInput;
         let lon = lonInput;
