@@ -256,35 +256,37 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     }
 
-    latDownButton.addEventListener('click', function () {
-        modifyValue(latInput, -0.01);
-        updateInputState(); // Update input state after modifying value
-    });
+    function modifyZoomValue(inputElement, increment) {
+        if (!inputElement.disabled) {
+            let currentValue = parseFloat(inputElement.value) || 0;
+            currentValue += increment;
+            inputElement.value = currentValue.toFixed(0); // 10 단위로 증가/감소
+            saveLatLonZoom(); // Save updated values to localStorage
+        }
+    }
 
-    latUpButton.addEventListener('click', function () {
-        modifyValue(latInput, 0.01);
-        updateInputState(); // Update input state after modifying value
-    });
+    function setupButtonHold(button, inputElement, increment, modifyFunc) {
+        let intervalId;
+        button.addEventListener('mousedown', function () {
+            modifyFunc(inputElement, increment);
+            intervalId = setInterval(function () {
+                modifyFunc(inputElement, increment);
+            }, 100); // 100ms마다 값 변경
+        });
+        button.addEventListener('mouseup', function () {
+            clearInterval(intervalId);
+        });
+        button.addEventListener('mouseleave', function () {
+            clearInterval(intervalId);
+        });
+    }
 
-    lonDownButton.addEventListener('click', function () {
-        modifyValue(lonInput, -0.01);
-        updateInputState(); // Update input state after modifying value
-    });
-
-    lonUpButton.addEventListener('click', function () {
-        modifyValue(lonInput, 0.01);
-        updateInputState(); // Update input state after modifying value
-    });
-
-    zoomOutButton.addEventListener('click', function () {
-        modifyValue(radInput, -0.1);
-        updateInputState(); // Update input state after modifying value
-    });
-
-    zoomInButton.addEventListener('click', function () {
-        modifyValue(radInput, 0.1);
-        updateInputState(); // Update input state after modifying value
-    });
+    setupButtonHold(latDownButton, latInput, -0.01, modifyValue);
+    setupButtonHold(latUpButton, latInput, 0.01, modifyValue);
+    setupButtonHold(lonDownButton, lonInput, -0.01, modifyValue);
+    setupButtonHold(lonUpButton, lonInput, 0.01, modifyValue);
+    setupButtonHold(zoomOutButton, radInput, -10, modifyZoomValue);
+    setupButtonHold(zoomInButton, radInput, 10, modifyZoomValue);
 
     // Function to save latitude, longitude, and zoom to localStorage
     function saveLatLonZoom() {
