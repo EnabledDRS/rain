@@ -118,12 +118,13 @@ body {
 }
 
 .speed-btn:hover, .pause-btn:hover, .grid-btn:hover {
-    background-color: #666;
+    background-color: #444;
     transform: scale(1.02);
 }
 .speed-btn:active, .pause-btn:active {
     background-color: #555;
     transform: scale(0.95);
+    color: #ffffff; /* Added to revert color after click */
 }
 
 /* -------------------------------------------------------------- */
@@ -170,14 +171,16 @@ body {
 }
 
 .grid-btn:hover {
-    background-color: #666;
+    background-color: #444;
     transform: scale(1.02);
 }
 
 .grid-btn:active {
     background-color: #555;
     transform: scale(0.95);
+    color: #ffffff; /* Added to revert color after click */
 }
+
 /* -------------------------------------------------------------- */
 .bottom {
     display: flex;
