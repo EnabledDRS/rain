@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const topoCheckbox = document.getElementById('topo');
     const latInput = document.getElementById('lat-display');
     const lonInput = document.getElementById('lon-display');
-    const zoomInput = document.getElementById('zoom-display');
+    const radInput = document.getElementById('rad-display');
     const latDownButton = document.getElementById('down-button-lat');
     const latUpButton = document.getElementById('up-button-lat');
     const lonDownButton = document.getElementById('down-button-lon');
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Get URL parameters for latitude, longitude, and zoom from localStorage
     let latParam = localStorage.getItem('lat');
     let lonParam = localStorage.getItem('lon');
-    let zoomParam = localStorage.getItem('zoom');
+    let radParam = localStorage.getItem('rad');
 
     async function getInternetTime() {
         const response = await fetch('https://worldtimeapi.org/api/timezone/Asia/Seoul');
@@ -123,8 +123,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             // Append latitude, longitude, and zoom parameters to the URL if they exist
             const dynamicLat = latParam ? `&lat=${latParam}` : '';
             const dynamicLon = lonParam ? `&lon=${lonParam}` : '';
-            const dynamicZoom = zoomParam ? `&zoom=${zoomParam}` : '';
-            const dynamicParams = `${dynamicLat}${dynamicLon}${dynamicZoom}`;
+            const dynamicRad = radParam ? `&zoom=${(574 * Math.pow(radParam, -1.001)).toFixed(2)}` : '';
+            const dynamicParams = `${dynamicLat}${dynamicLon}${dynamicRad}`;
 
             urls.push(`${baseURL}&center=${center}&wv=${windVector}&aws=${aws}&topo=${topo}${selectedRegionConfig.url}${dynamicParams}&tm=${formattedDate}`);
             imageTimes.push(date);
@@ -227,20 +227,20 @@ document.addEventListener('DOMContentLoaded', async function () {
         const isDisabled = regionSelect.value !== '전국/선택지점[4시간]';
         latInput.disabled = isDisabled;
         lonInput.disabled = isDisabled;
-        zoomInput.disabled = isDisabled;
+        radInput.disabled = isDisabled;
 
         if (isDisabled) {
             latInput.placeholder = "전국/선택지점";
             lonInput.placeholder = "에서 좌표 지정";
-            zoomInput.placeholder = "";
+            radInput.placeholder = "";
         } else {
             latInput.placeholder = "위도(32°~44°)";
             lonInput.placeholder = "경도(123°~131°)";
-            zoomInput.placeholder = "배율(0.5~115)";
+            radInput.placeholder = "반경 (km)";
         }
 
         // Update the border of the zeroButton based on input values
-        if (latInput.value || lonInput.value || zoomInput.value) {
+        if (latInput.value || lonInput.value || radInput.value) {
             zeroButton.classList.add('highlight');
         } else {
             zeroButton.classList.remove('highlight');
@@ -277,12 +277,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     zoomOutButton.addEventListener('click', function () {
-        modifyValue(zoomInput, -0.1);
+        modifyValue(radInput, -0.1);
         updateInputState(); // Update input state after modifying value
     });
 
     zoomInButton.addEventListener('click', function () {
-        modifyValue(zoomInput, 0.1);
+        modifyValue(radInput, 0.1);
         updateInputState(); // Update input state after modifying value
     });
 
@@ -290,23 +290,23 @@ document.addEventListener('DOMContentLoaded', async function () {
     function saveLatLonZoom() {
         const lat = document.getElementById('lat-display').value;
         const lon = document.getElementById('lon-display').value;
-        const zoom = document.getElementById('zoom-display').value;
+        const rad = document.getElementById('rad-display').value;
         localStorage.setItem('lat', lat);
         localStorage.setItem('lon', lon);
-        localStorage.setItem('zoom', zoom);
+        localStorage.setItem('rad', rad);
         latParam = lat;
         lonParam = lon;
-        zoomParam = zoom;
+        radParam = rad;
     }
 
     // Function to retrieve latitude, longitude, and zoom from localStorage
     function loadLatLonZoom() {
         const lat = localStorage.getItem('lat');
         const lon = localStorage.getItem('lon');
-        const zoom = localStorage.getItem('zoom');
+        const rad = localStorage.getItem('rad');
         if (lat) document.getElementById('lat-display').value = lat;
         if (lon) document.getElementById('lon-display').value = lon;
-        if (zoom) document.getElementById('zoom-display').value = zoom;
+        if (rad) document.getElementById('rad-display').value = rad;
     }
 
     // Load latitude, longitude, and zoom values from localStorage on page load
@@ -318,10 +318,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Clear manual lat, lon, zoom settings to give priority to dropdown selection
         localStorage.removeItem('lat');
         localStorage.removeItem('lon');
-        localStorage.removeItem('zoom');
+        localStorage.removeItem('rad');
         latParam = null;
         lonParam = null;
-        zoomParam = null;
+        radParam = null;
         updateImages(true); // Force update on region change
         updateInputState(); // Update input state based on selection
     });
@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         const latInput = document.getElementById('lat-display').value;
         const lonInput = document.getElementById('lon-display').value;
-        const zoomInput = document.getElementById('zoom-display').value;
+        const radInputValue = document.getElementById('rad-display').value;
 
         let lat = latInput;
         let lon = lonInput;
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         let validLat = lat >= 32 && lat <= 44;
         let validLon = lon >= 123 && lon <= 131;
-        let validZoom = zoomInput === '' || (zoomInput >= 0.5 && zoomInput <= 115);
+        let validRad = radInputValue === '' || radInputValue > 0;
 
         let errorMessage = '유효하지 않은 ';
         let invalidFields = [];
@@ -401,8 +401,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (!validLon) {
             invalidFields.push('경도');
         }
-        if (!validZoom) {
-            invalidFields.push('배율');
+        if (!validRad) {
+            invalidFields.push('반경');
         }
 
         if (invalidFields.length > 0) {
@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             alert(errorMessage);
         } else {
             let currentZoom = selectedRegionConfig.url.match(/&zoom=([0-9.]+)/)[1];
-            let zoom = zoomInput === '' ? currentZoom : zoomInput;
+            let zoom = radInputValue === '' ? currentZoom : (574 * Math.pow(radInputValue, 1.001)).toFixed(2);
             regionConfigs['전국/선택지점[4시간]'].url = `&lonlat=0&lat=${lat}&lon=${lon}&zoom=${zoom}&ht=1000`;
             localStorage.setItem('region-select', '전국/선택지점[4시간]');
             saveLatLonZoom(); // Save the new values
@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         regionSelect.value = '전국/선택지점[4시간]';  // 드롭다운 메뉴도 기본값으로 설정
         localStorage.removeItem('lat');
         localStorage.removeItem('lon');
-        localStorage.removeItem('zoom');
+        localStorage.removeItem('rad');
         updateImages(true); // Force update on default selection
         if (!isPlaying) {
             startAutoPlay();
