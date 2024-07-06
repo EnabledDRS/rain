@@ -181,6 +181,10 @@ body {
     color: #ffffff; /* Added to revert color after click */
 }
 
+.grid-btn.highlight {
+    border: 1px solid #ff0000;
+}
+
 /* -------------------------------------------------------------- */
 .bottom {
     display: flex;
