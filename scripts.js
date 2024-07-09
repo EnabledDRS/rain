@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const zeroButton = document.getElementById('zero-button');
 
     const baseURL = "https://radar.kma.go.kr/cgi-bin/center/nph-rdr_cmp_img?cmp=HSP&color=C4&qcd=HSO&obs=ECHO&map=HB&size=800&gis=1&legend=1&gov=KMA";
-    let includeGcT = true; // Default state to include &gc=T
+    let includeGcT = false; // Default state to include &gc=T
 
     function updateBaseURL() {
         let newBaseURL = baseURL;
