@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const windVectorCheckbox = document.getElementById('wv');
     const awsCheckbox = document.getElementById('aws');
     const topoCheckbox = document.getElementById('topo');
+    const lightningCheckbox = document.getElementById('lightning'); // Reference for the lightning checkbox
     const latInput = document.getElementById('lat-display');
     const lonInput = document.getElementById('lon-display');
     const radInput = document.getElementById('rad-display');
@@ -24,7 +25,17 @@ document.addEventListener('DOMContentLoaded', async function () {
     const zoomInButton = document.getElementById('zoom-in-button');
     const zeroButton = document.getElementById('zero-button');
 
-    const baseURL = "https://radar.kma.go.kr/cgi-bin/center/nph-rdr_cmp_img?cmp=HSP&color=C4&qcd=HSO&obs=ECHO&map=HB&size=800&gis=1&legend=1&gov=KMA&gc=T&gc_itv=60";
+    const baseURL = "https://radar.kma.go.kr/cgi-bin/center/nph-rdr_cmp_img?cmp=HSP&color=C4&qcd=HSO&obs=ECHO&map=HB&size=800&gis=1&legend=1&gov=KMA";
+    let includeGcT = true; // Default state to include &gc=T
+
+    function updateBaseURL() {
+        let newBaseURL = baseURL;
+        if (includeGcT) {
+            newBaseURL += "&gc=T";
+        }
+        return newBaseURL;
+    }
+
     const regionConfigs = {
         '전국/선택지점[4시간]': { url: "&lonlat=0&lat=35.90&lon=127.80&zoom=2&ht=1000", interval: 5, frames: 48 },
         '수도권[2시간]': { url: "&lonlat=0&lat=37.57&lon=126.97&zoom=4.9&ht=1000", interval: 5, frames: 24 },
@@ -45,12 +56,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     let imageTimes = [];
     let userPaused = false; // To track if the user has paused
 
-    // Load selected region, center state, wind vector state, aws state, and topo state from localStorage
+    // Load selected region, center state, wind vector state, aws state, topo state, and lightning state from localStorage
     const savedRegion = localStorage.getItem('region-select');
     const savedCenter = localStorage.getItem('center') === '1';
     const savedWindVector = localStorage.getItem('wv') === '1';
     const savedAws = localStorage.getItem('aws') === '1';
     const savedTopo = localStorage.getItem('topo') === '1';
+    const savedLightning = localStorage.getItem('lightning') === '1';
 
     if (savedRegion) {
         selectedRegionConfig = regionConfigs[savedRegion];
@@ -71,6 +83,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     if (savedTopo) {
         topoCheckbox.checked = true;
+    }
+
+    if (savedLightning) {
+        lightningCheckbox.checked = true;
     }
 
     // Get URL parameters for latitude, longitude, and zoom from localStorage
@@ -109,6 +125,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         const windVector = windVectorCheckbox.checked ? 1 : 0;
         const aws = awsCheckbox.checked ? 1 : 0;
         const topo = topoCheckbox.checked ? 1 : 0;
+        const lightning = lightningCheckbox.checked ? 1 : 0;
 
         nowKST.setMinutes(Math.floor(nowKST.getMinutes() / interval) * interval);
         nowKST.setSeconds(0);
@@ -126,7 +143,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const dynamicRad = radParam ? `&zoom=${(574 * Math.pow(radParam, -1.001)).toFixed(2)}` : '';
             const dynamicParams = `${dynamicLat}${dynamicLon}${dynamicRad}`;
 
-            urls.push(`${baseURL}&center=${center}&wv=${windVector}&aws=${aws}&topo=${topo}${selectedRegionConfig.url}${dynamicParams}&tm=${formattedDate}`);
+            urls.push(`${updateBaseURL()}&center=${center}&wv=${windVector}&aws=${aws}&topo=${topo}&lightning=${lightning}${selectedRegionConfig.url}${dynamicParams}&tm=${formattedDate}`);
             imageTimes.push(date);
         }
         return urls.reverse();
@@ -137,10 +154,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         const windVector = windVectorCheckbox.checked ? 1 : 0;
         const aws = awsCheckbox.checked ? 1 : 0;
         const topo = topoCheckbox.checked ? 1 : 0;
+        const lightning = lightningCheckbox.checked ? 1 : 0;
 
         if (!forceUpdate && lastUpdateRegion === regionSelect.value &&
             lastUpdateCenter === center && lastUpdateWindVector === windVector &&
-            lastUpdateAws === aws && lastUpdateTopo === topo) {
+            lastUpdateAws === aws && lastUpdateTopo === topo && lastUpdateLightning === lightning) {
             return;
         }
 
@@ -174,6 +192,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         lastUpdateWindVector = windVector;
         lastUpdateAws = aws;
         lastUpdateTopo = topo;
+        lastUpdateLightning = lightning;
     }
 
     function startAutoPlay() {
@@ -348,6 +367,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         updateImages(true); // Force update on checkbox change
     });
 
+    lightningCheckbox.addEventListener('change', function () {
+        includeGcT = lightningCheckbox.checked;
+        localStorage.setItem('lightning', includeGcT ? '1' : '0');
+        updateImages(true); // Force update on checkbox change
+    });
+
     function updateTimeDisplays() {
         const now = new Date();
         const formattedNow = formatDate(now, "display");
@@ -376,10 +401,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             return;
         }
 
-//-------------------------------------------------------------//
-
-//-------------------------------------------------------------//
-        
         const latInput = document.getElementById('lat-display').value;
         const lonInput = document.getElementById('lon-display').value;
         const radInputValue = document.getElementById('rad-display').value;
