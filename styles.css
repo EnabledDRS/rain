@@ -132,7 +132,7 @@ body {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    width: 75%;
+    width: 85%;
     margin: 5px auto;
 }
 
