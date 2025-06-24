@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async function () {Add commentMore actions
+document.addEventListener('DOMContentLoaded', async function () {
     const regionSelect = document.querySelector('.region-select');
     const image = document.getElementById('radar-image');
     const slider = document.getElementById('time-slider');
