@@ -368,8 +368,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     lightningCheckbox.addEventListener('change', function () {
-        includeGcT = lightningCheckbox.checked;
-        localStorage.setItem('lightning', includeGcT ? '1' : '0');
+        localStorage.setItem('lightning', lightningCheckbox.checked ? '1' : '0');
         updateImages(true); // Force update on checkbox change
     });
 
