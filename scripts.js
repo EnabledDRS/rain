@@ -1,211 +1,195 @@
 document.addEventListener('DOMContentLoaded', async function () {
-    const regionSelect = document.querySelector('.region-select');
-    const image = document.getElementById('radar-image');
-    const slider = document.getElementById('time-slider');
-    const speedDisplay = document.querySelector('.speed-display');
-    const playPauseButton = document.querySelector('.pause-btn');
-    const slowerButton = document.getElementById('slower');
-    const fasterButton = document.getElementById('faster');
-    const lastRefresh = document.querySelector('.refresh-time');
-    const timeDisplay = document.querySelector('.image-time');
-    const nowDisplay = document.querySelector('.now');
-    const centerCheckbox = document.getElementById('center');
+    const regionSelect       = document.querySelector('.region-select');
+    const image              = document.getElementById('radar-image');
+    const slider             = document.getElementById('time-slider');
+    const speedDisplay       = document.querySelector('.speed-display');
+    const playPauseButton    = document.querySelector('.pause-btn');
+    const slowerButton       = document.getElementById('slower');
+    const fasterButton       = document.getElementById('faster');
+    const lastRefresh        = document.querySelector('.refresh-time');
+    const timeDisplay        = document.querySelector('.image-time');
+    const nowDisplay         = document.querySelector('.now');
+    const centerCheckbox     = document.getElementById('center');
     const windVectorCheckbox = document.getElementById('wv');
-    const awsCheckbox = document.getElementById('aws');
-    const topoCheckbox = document.getElementById('topo');
-    const lightningCheckbox = document.getElementById('lightning'); // Reference for the lightning checkbox
-    const latInput = document.getElementById('lat-display');
-    const lonInput = document.getElementById('lon-display');
-    const radInput = document.getElementById('rad-display');
-    const latDownButton = document.getElementById('down-button-lat');
-    const latUpButton = document.getElementById('up-button-lat');
-    const lonDownButton = document.getElementById('down-button-lon');
-    const lonUpButton = document.getElementById('up-button-lon');
-    const zoomOutButton = document.getElementById('zoom-out-button');
-    const zoomInButton = document.getElementById('zoom-in-button');
-    const zeroButton = document.getElementById('zero-button');
+    const awsCheckbox        = document.getElementById('aws');
+    const topoCheckbox       = document.getElementById('topo');
+    const lightningCheckbox  = document.getElementById('lightning');
+    const latInput           = document.getElementById('lat-display');
+    const lonInput           = document.getElementById('lon-display');
+    const radInput           = document.getElementById('rad-display');
+    const latDownButton      = document.getElementById('down-button-lat');
+    const latUpButton        = document.getElementById('up-button-lat');
+    const lonDownButton      = document.getElementById('down-button-lon');
+    const lonUpButton        = document.getElementById('up-button-lon');
+    const zoomOutButton      = document.getElementById('zoom-out-button');
+    const zoomInButton       = document.getElementById('zoom-in-button');
+    const zeroButton         = document.getElementById('zero-button');
+    const okButton           = document.getElementById('ok-button');
 
     const baseURL = "https://radar.kma.go.kr/cgi-bin/center/nph-rdr_cmp_img?cmp=HSP&color=C4&qcd=HSO&obs=ECHO&map=HB&size=800&gis=1&legend=1&gov=KMA";
-    let includeGcT = false; // Default state to include &gc=T
+    let includeGcT = false;
 
     function updateBaseURL() {
-        let newBaseURL = baseURL;
-        if (includeGcT) {
-            newBaseURL += "&gc=T";
-        }
-        return newBaseURL;
+        return includeGcT ? baseURL + "&gc=T" : baseURL;
     }
 
     const regionConfigs = {
         '전국/선택지점[4시간]': { url: "&lonlat=0&lat=35.90&lon=127.80&zoom=2&ht=1000", interval: 5, frames: 48 },
-        '수도권[2시간]': { url: "&lonlat=0&lat=37.57&lon=126.97&zoom=4.9&ht=1000", interval: 5, frames: 24 },
-        '충청권[2시간]': { url: "&lonlat=0&lat=36.49&lon=127.24&zoom=4.9&ht=1000", interval: 5, frames: 24 },
-        '호남권[2시간]': { url: "&lonlat=0&lat=35.17&lon=126.89&zoom=4.9&ht=1000", interval: 5, frames: 24 },
-        '경남권[2시간]': { url: "&lonlat=0&lat=35.22&lon=128.67&zoom=4.9&ht=1000", interval: 5, frames: 24 },
-        '경북권[2시간]': { url: "&lonlat=0&lat=36.25&lon=128.56&zoom=4.9&ht=1000", interval: 5, frames: 24 },
-        '강원권[2시간]': { url: "&lonlat=0&lat=37.78&lon=128.40&zoom=4.9&ht=1000", interval: 5, frames: 24 },
-        '제주권[2시간]': { url: "&lonlat=0&lat=33.38&lon=126.53&zoom=4.9&ht=1000", interval: 5, frames: 24 },
-        '동아시아[24시간]': { url: "&lonlat=0&lat=33.11&lon=126.27&zoom=0.5&ht=1000", interval: 30, frames: 48 }
+        '수도권[2시간]':       { url: "&lonlat=0&lat=37.57&lon=126.97&zoom=4.9&ht=1000", interval: 5, frames: 24 },
+        '충청권[2시간]':       { url: "&lonlat=0&lat=36.49&lon=127.24&zoom=4.9&ht=1000", interval: 5, frames: 24 },
+        '호남권[2시간]':       { url: "&lonlat=0&lat=35.17&lon=126.89&zoom=4.9&ht=1000", interval: 5, frames: 24 },
+        '경남권[2시간]':       { url: "&lonlat=0&lat=35.22&lon=128.67&zoom=4.9&ht=1000", interval: 5, frames: 24 },
+        '경북권[2시간]':       { url: "&lonlat=0&lat=36.25&lon=128.56&zoom=4.9&ht=1000", interval: 5, frames: 24 },
+        '강원권[2시간]':       { url: "&lonlat=0&lat=37.78&lon=128.40&zoom=4.9&ht=1000", interval: 5, frames: 24 },
+        '제주권[2시간]':       { url: "&lonlat=0&lat=33.38&lon=126.53&zoom=4.9&ht=1000", interval: 5, frames: 24 },
+        '동아시아[24시간]':    { url: "&lonlat=0&lat=33.11&lon=126.27&zoom=0.5&ht=1000", interval: 30, frames: 48 }
     };
 
     let selectedRegionConfig = regionConfigs['전국/선택지점[4시간]'];
-    let intervalId;
-    let isPlaying = true; // Default to true for auto play
+    let intervalId    = null;
+    let reloadTimer   = null;
+    let isPlaying     = true;
     let preloadedImages = [];
-    let speed = parseInt(localStorage.getItem('speed')) || 500; // Default speed in milliseconds or saved value
-    let imageTimes = [];
-    let userPaused = false; // To track if the user has paused
+    let speed         = parseInt(localStorage.getItem('speed')) || 500;
+    let imageTimes    = [];
+    let userPaused    = false;
 
-    // Load selected region, center state, wind vector state, aws state, topo state, and lightning state from localStorage
-    const savedRegion = localStorage.getItem('region-select');
-    const savedCenter = localStorage.getItem('center') === '1';
-    const savedWindVector = localStorage.getItem('wv') === '1';
-    const savedAws = localStorage.getItem('aws') === '1';
-    const savedTopo = localStorage.getItem('topo') === '1';
+    // 저장된 설정 불러오기
+    const savedRegion    = localStorage.getItem('region-select');
+    const savedCenter    = localStorage.getItem('center')    === '1';
+    const savedWindVector= localStorage.getItem('wv')        === '1';
+    const savedAws       = localStorage.getItem('aws')       === '1';
+    const savedTopo      = localStorage.getItem('topo')      === '1';
     const savedLightning = localStorage.getItem('lightning') === '1';
 
-    if (savedRegion) {
-        selectedRegionConfig = regionConfigs[savedRegion];
-        regionSelect.value = savedRegion;
-    }
+    if (savedRegion)     { selectedRegionConfig = regionConfigs[savedRegion]; regionSelect.value = savedRegion; }
+    if (savedCenter)     centerCheckbox.checked = true;
+    if (savedWindVector) windVectorCheckbox.checked = true;
+    if (savedAws)        awsCheckbox.checked = true;
+    if (savedTopo)       topoCheckbox.checked = true;
+    if (savedLightning)  lightningCheckbox.checked = true;
 
-    if (savedCenter) {
-        centerCheckbox.checked = true;
-    }
-
-    if (savedWindVector) {
-        windVectorCheckbox.checked = true;
-    }
-
-    if (savedAws) {
-        awsCheckbox.checked = true;
-    }
-
-    if (savedTopo) {
-        topoCheckbox.checked = true;
-    }
-
-    if (savedLightning) {
-        lightningCheckbox.checked = true;
-    }
-
-    // Get URL parameters for latitude, longitude, and zoom from localStorage
     let latParam = localStorage.getItem('lat');
     let lonParam = localStorage.getItem('lon');
     let radParam = localStorage.getItem('rad');
 
+    // 서버 시간 가져오기 (예외 처리 포함)
     async function getInternetTime() {
-        const response = await fetch('https://worldtimeapi.org/api/timezone/Asia/Seoul');
-        const data = await response.json();
-        return new Date(data.datetime);
-    }
-
-    function formatDate(date, type = "url") {
-        const y = date.getFullYear();
-        const m = ('0' + (date.getMonth() + 1)).slice(-2);
-        const d = ('0' + date.getDate()).slice(-2);
-        const h = ('0' + date.getHours()).slice(-2);
-        const min = ('0' + date.getMinutes()).slice(-2);
-        const s = ('0' + date.getSeconds()).slice(-2);
-
-        if (type === "url") {
-            return `${y}${m}${d}${h}${min}${s}`;
-        } else if (type === "display") {
-            return `${y}.${m}.${d} ${h}:${min}:${s}`;
-        } else if (type === "image") {
-            return `${y}. ${m}. ${d}.  ${h}:${min}`;
+        try {
+            const res = await fetch('https://worldtimeapi.org/api/timezone/Asia/Seoul', { mode: 'cors' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            return new Date(data.datetime);
+        } catch (err) {
+            console.error('서버 시간 로드 실패:', err);
+            return new Date();  // 클라이언트 시간으로 대체
         }
     }
 
+    function formatDate(date, type = "url") {
+        const y   = date.getFullYear();
+        const m   = ('0' + (date.getMonth()+1)).slice(-2);
+        const d   = ('0' + date.getDate()).slice(-2);
+        const h   = ('0' + date.getHours()).slice(-2);
+        const min = ('0' + date.getMinutes()).slice(-2);
+        const s   = ('0' + date.getSeconds()).slice(-2);
+        if (type === "url")     return `${y}${m}${d}${h}${min}${s}`;
+        else if (type === "display") return `${y}.${m}.${d} ${h}:${min}:${s}`;
+        else if (type === "image")   return `${y}. ${m}. ${d}.  ${h}:${min}`;
+    }
+
+    // 이미지 URL 목록 생성
     async function generateImageURLs() {
-        const urls = [];
-        const nowKST = await getInternetTime();
+        const urls     = [];
+        const nowKST   = await getInternetTime();
         const interval = selectedRegionConfig.interval;
-        const center = centerCheckbox.checked ? 1 : 0;
-        const windVector = windVectorCheckbox.checked ? 1 : 0;
-        const aws = awsCheckbox.checked ? 1 : 0;
-        const topo = topoCheckbox.checked ? 1 : 0;
-        const lightning = lightningCheckbox.checked ? 1 : 0;
-
-        nowKST.setMinutes(Math.floor(nowKST.getMinutes() / interval) * interval);
-        nowKST.setSeconds(0);
-        nowKST.setMilliseconds(0);
-
+        nowKST.setMinutes(Math.floor(nowKST.getMinutes()/interval)*interval);
+        nowKST.setSeconds(0); nowKST.setMilliseconds(0);
         imageTimes = [];
 
         for (let i = 0; i < selectedRegionConfig.frames; i++) {
-            const date = new Date(nowKST.getTime() - i * interval * 60000);
-            const formattedDate = formatDate(date);
-
-            // Append latitude, longitude, and zoom parameters to the URL if they exist
-            const dynamicLat = latParam ? `&lat=${latParam}` : '';
-            const dynamicLon = lonParam ? `&lon=${lonParam}` : '';
-            const dynamicRad = radParam ? `&zoom=${(574 * Math.pow(radParam, -1.001)).toFixed(2)}` : '';
-            const dynamicParams = `${dynamicLat}${dynamicLon}${dynamicRad}`;
-
-            urls.push(`${updateBaseURL()}&center=${center}&wv=${windVector}&aws=${aws}&topo=${topo}&lightning=${lightning}${selectedRegionConfig.url}${dynamicParams}&tm=${formattedDate}`);
+            const date      = new Date(nowKST.getTime() - i * interval * 60000);
+            const tm        = formatDate(date);
+            const dynLat    = latParam ? `&lat=${latParam}` : '';
+            const dynLon    = lonParam ? `&lon=${lonParam}` : '';
+            const dynZoom   = radParam ? `&zoom=${(574*Math.pow(radParam,-1.001)).toFixed(2)}` : '';
+            const params    = `${dynLat}${dynLon}${dynZoom}`;
+            const url       = `${updateBaseURL()}&center=${centerCheckbox.checked?1:0}` +
+                              `&wv=${windVectorCheckbox.checked?1:0}` +
+                              `&aws=${awsCheckbox.checked?1:0}` +
+                              `&topo=${topoCheckbox.checked?1:0}` +
+                              `&lightning=${lightningCheckbox.checked?1:0}` +
+                              `${selectedRegionConfig.url}${params}&tm=${tm}`;
+            urls.push(url);
             imageTimes.push(date);
         }
         return urls.reverse();
     }
 
-    async function updateImages(forceUpdate = false) {
-        const center = centerCheckbox.checked ? 1 : 0;
-        const windVector = windVectorCheckbox.checked ? 1 : 0;
-        const aws = awsCheckbox.checked ? 1 : 0;
-        const topo = topoCheckbox.checked ? 1 : 0;
-        const lightning = lightningCheckbox.checked ? 1 : 0;
+    // 이미지 갱신 및 preload
+    async function updateImages(force = false) {
+        if (!force &&
+            lastUpdateRegion     === regionSelect.value &&
+            lastUpdateCenter     === (centerCheckbox.checked?1:0) &&
+            lastUpdateWindVector === (windVectorCheckbox.checked?1:0) &&
+            lastUpdateAws        === (awsCheckbox.checked?1:0) &&
+            lastUpdateTopo       === (topoCheckbox.checked?1:0) &&
+            lastUpdateLightning  === (lightningCheckbox.checked?1:0)
+        ) return;
 
-        if (!forceUpdate && lastUpdateRegion === regionSelect.value &&
-            lastUpdateCenter === center && lastUpdateWindVector === windVector &&
-            lastUpdateAws === aws && lastUpdateTopo === topo && lastUpdateLightning === lightning) {
-            return;
-        }
-
-        const images = await generateImageURLs();
-        preloadedImages = images.map((url, index) => {
+        const urls = await generateImageURLs();
+        preloadedImages = urls.map((url, idx) => {
             const img = new Image();
             img.src = url;
-            return { img, time: imageTimes[imageTimes.length - 1 - index] };
+            img.onerror = () => {
+                console.warn(`이미지 로딩 실패: ${url}`);
+                if (!reloadTimer) {
+                    reloadTimer = setInterval(() => location.reload(), 2000);
+                }
+            };
+            img.onload = () => {
+                if (reloadTimer) {
+                    clearInterval(reloadTimer);
+                    reloadTimer = null;
+                }
+            };
+            return { img, time: imageTimes[imageTimes.length - 1 - idx] };
         });
 
-        // Update the image source and time display based on slider value
         slider.max = selectedRegionConfig.frames - 1;
-        slider.addEventListener('input', function () {
-            const index = slider.value;
-            image.src = preloadedImages[index].img.src;
-            timeDisplay.textContent = formatDate(preloadedImages[index].time, "image");
+        slider.addEventListener('input', () => {
+            const i = slider.value;
+            image.src = preloadedImages[i].img.src;
+            timeDisplay.textContent = formatDate(preloadedImages[i].time, "image");
         });
 
-        // Initialize the first image and time display
         image.src = preloadedImages[0].img.src;
-        image.style.width = "100%"; // Ensure image width fits the screen
+        image.style.width = "100%";
         timeDisplay.textContent = formatDate(preloadedImages[0].time, "image");
 
-        // Set up the automatic slide show if playing
-        if (isPlaying) {
-            startAutoPlay();
-        }
+        if (isPlaying) startAutoPlay();
 
-        lastUpdateRegion = regionSelect.value;
-        lastUpdateCenter = center;
-        lastUpdateWindVector = windVector;
-        lastUpdateAws = aws;
-        lastUpdateTopo = topo;
-        lastUpdateLightning = lightning;
+        lastUpdateRegion     = regionSelect.value;
+        lastUpdateCenter     = centerCheckbox.checked?1:0;
+        lastUpdateWindVector = windVectorCheckbox.checked?1:0;
+        lastUpdateAws        = awsCheckbox.checked?1:0;
+        lastUpdateTopo       = topoCheckbox.checked?1:0;
+        lastUpdateLightning  = lightningCheckbox.checked?1:0;
     }
 
+    // 자동 재생
     function startAutoPlay() {
         clearInterval(intervalId);
         intervalId = setInterval(() => {
             slider.value = (parseInt(slider.value) + 1) % selectedRegionConfig.frames;
-            const index = slider.value;
-            image.src = preloadedImages[index].img.src;
-            timeDisplay.textContent = formatDate(preloadedImages[index].time, "image");
+            const i = slider.value;
+            image.src = preloadedImages[i].img.src;
+            timeDisplay.textContent = formatDate(preloadedImages[i].time, "image");
         }, speed);
     }
 
-    playPauseButton.addEventListener('click', function () {
+    // 버튼 이벤트
+    playPauseButton.addEventListener('click', () => {
         if (isPlaying) {
             clearInterval(intervalId);
             playPauseButton.textContent = '재생';
@@ -218,37 +202,29 @@ document.addEventListener('DOMContentLoaded', async function () {
         isPlaying = !isPlaying;
     });
 
-    fasterButton.addEventListener('click', function () {
+    fasterButton.addEventListener('click', () => {
         if (speed > 100) {
             speed -= 100;
-            speedDisplay.textContent = `${(speed / 1000).toFixed(1)} s/frame`;
-            localStorage.setItem('speed', speed); // Save speed to localStorage
-            if (isPlaying) {
-                clearInterval(intervalId);
-                startAutoPlay();
-            }
+            speedDisplay.textContent = `${(speed/1000).toFixed(1)} s/frame`;
+            localStorage.setItem('speed', speed);
+            if (isPlaying) { clearInterval(intervalId); startAutoPlay(); }
         }
     });
 
-    slowerButton.addEventListener('click', function () {
+    slowerButton.addEventListener('click', () => {
         if (speed < 2000) {
             speed += 100;
-            speedDisplay.textContent = `${(speed / 1000).toFixed(1)} s/frame`;
-            localStorage.setItem('speed', speed); // Save speed to localStorage
-            if (isPlaying) {
-                clearInterval(intervalId);
-                startAutoPlay();
-            }
+            speedDisplay.textContent = `${(speed/1000).toFixed(1)} s/frame`;
+            localStorage.setItem('speed', speed);
+            if (isPlaying) { clearInterval(intervalId); startAutoPlay(); }
         }
     });
 
+    // 입력 상태 업데이트
     function updateInputState() {
-        const isDisabled = regionSelect.value !== '전국/선택지점[4시간]';
-        latInput.disabled = isDisabled;
-        lonInput.disabled = isDisabled;
-        radInput.disabled = isDisabled;
-
-        if (isDisabled) {
+        const disabled = regionSelect.value !== '전국/선택지점[4시간]';
+        latInput.disabled = lonInput.disabled = radInput.disabled = disabled;
+        if (disabled) {
             latInput.placeholder = "전국/선택지점";
             lonInput.placeholder = "에서 좌표 지정";
             radInput.placeholder = "";
@@ -257,233 +233,133 @@ document.addEventListener('DOMContentLoaded', async function () {
             lonInput.placeholder = "경도(123°~131°)";
             radInput.placeholder = "반경(km)";
         }
+        zeroButton.classList.toggle('highlight', latInput.value||lonInput.value||radInput.value);
+    }
 
-        // Update the border of the zeroButton based on input values
-        if (latInput.value || lonInput.value || radInput.value) {
-            zeroButton.classList.add('highlight');
-        } else {
-            zeroButton.classList.remove('highlight');
+    // 값 증감 함수
+    function modifyValue(el, inc) {
+        if (!el.disabled) {
+            let v = parseFloat(el.value) || 0;
+            v += inc;
+            el.value = (el === radInput ? v.toFixed(0) : v.toFixed(2));
+            saveLatLonZoom();
         }
     }
-
-    function modifyValue(inputElement, increment) {
-        if (!inputElement.disabled) {
-            let currentValue = parseFloat(inputElement.value) || 0;
-            currentValue += increment;
-            inputElement.value = currentValue.toFixed(2);
-            saveLatLonZoom(); // Save updated values to localStorage
-        }
+    function setupHold(btn, el, inc) {
+        let tid;
+        btn.addEventListener('mousedown', () => { modifyValue(el,inc); tid = setInterval(()=>modifyValue(el,inc),100); });
+        btn.addEventListener('mouseup',   () => clearInterval(tid));
+        btn.addEventListener('mouseleave',() => clearInterval(tid));
     }
+    setupHold(latDownButton, latInput, -0.01);
+    setupHold(latUpButton,   latInput,  0.01);
+    setupHold(lonDownButton, lonInput, -0.01);
+    setupHold(lonUpButton,   lonInput,  0.01);
+    setupHold(zoomOutButton, radInput, -10);
+    setupHold(zoomInButton,  radInput,  10);
 
-    function modifyZoomValue(inputElement, increment) {
-        if (!inputElement.disabled) {
-            let currentValue = parseFloat(inputElement.value) || 0;
-            currentValue += increment;
-            inputElement.value = currentValue.toFixed(0); // 10 단위로 증가/감소
-            saveLatLonZoom(); // Save updated values to localStorage
-        }
-    }
-
-    function setupButtonHold(button, inputElement, increment, modifyFunc) {
-        let intervalId;
-        button.addEventListener('mousedown', function () {
-            modifyFunc(inputElement, increment);
-            intervalId = setInterval(function () {
-                modifyFunc(inputElement, increment);
-            }, 100); // 100ms마다 값 변경
-        });
-        button.addEventListener('mouseup', function () {
-            clearInterval(intervalId);
-        });
-        button.addEventListener('mouseleave', function () {
-            clearInterval(intervalId);
-        });
-    }
-
-    setupButtonHold(latDownButton, latInput, -0.01, modifyValue);
-    setupButtonHold(latUpButton, latInput, 0.01, modifyValue);
-    setupButtonHold(lonDownButton, lonInput, -0.01, modifyValue);
-    setupButtonHold(lonUpButton, lonInput, 0.01, modifyValue);
-    setupButtonHold(zoomOutButton, radInput, -10, modifyZoomValue);
-    setupButtonHold(zoomInButton, radInput, 10, modifyZoomValue);
-
-    // Function to save latitude, longitude, and zoom to localStorage
+    // 로컬스토리지 저장/불러오기
     function saveLatLonZoom() {
-        const lat = document.getElementById('lat-display').value;
-        const lon = document.getElementById('lon-display').value;
-        const rad = document.getElementById('rad-display').value;
-        localStorage.setItem('lat', lat);
-        localStorage.setItem('lon', lon);
-        localStorage.setItem('rad', rad);
-        latParam = lat;
-        lonParam = lon;
-        radParam = rad;
+        localStorage.setItem('lat', latInput.value);
+        localStorage.setItem('lon', lonInput.value);
+        localStorage.setItem('rad', radInput.value);
+        latParam = latInput.value; lonParam = lonInput.value; radParam = radInput.value;
     }
-
-    // Function to retrieve latitude, longitude, and zoom from localStorage
     function loadLatLonZoom() {
-        const lat = localStorage.getItem('lat');
-        const lon = localStorage.getItem('lon');
-        const rad = localStorage.getItem('rad');
-        if (lat) document.getElementById('lat-display').value = lat;
-        if (lon) document.getElementById('lon-display').value = lon;
-        if (rad) document.getElementById('rad-display').value = rad;
+        const l = localStorage.getItem('lat');
+        const o = localStorage.getItem('lon');
+        const r = localStorage.getItem('rad');
+        if (l) latInput.value = l;
+        if (o) lonInput.value = o;
+        if (r) radInput.value = r;
     }
-
-    // Load latitude, longitude, and zoom values from localStorage on page load
     loadLatLonZoom();
 
-    regionSelect.addEventListener('change', function () {
+    // 셀렉트/체크박스 변경
+    regionSelect.addEventListener('change', () => {
         selectedRegionConfig = regionConfigs[regionSelect.value];
-        localStorage.setItem('region-select', regionSelect.value); // Save selected region to localStorage
-        // Clear manual lat, lon, zoom settings to give priority to dropdown selection
-        localStorage.removeItem('lat');
-        localStorage.removeItem('lon');
-        localStorage.removeItem('rad');
-        latParam = null;
-        lonParam = null;
-        radParam = null;
-        updateImages(true); // Force update on region change
-        updateInputState(); // Update input state based on selection
+        localStorage.setItem('region-select', regionSelect.value);
+        localStorage.removeItem('lat'); localStorage.removeItem('lon'); localStorage.removeItem('rad');
+        latParam = lonParam = radParam = null;
+        updateImages(true);
+        updateInputState();
     });
+    [centerCheckbox, windVectorCheckbox, awsCheckbox, topoCheckbox, lightningCheckbox]
+    .forEach(chk => chk.addEventListener('change', () => {
+        localStorage.setItem(chk.id, chk.checked?'1':'0');
+        updateImages(true);
+    }));
 
-    centerCheckbox.addEventListener('change', function () {
-        localStorage.setItem('center', centerCheckbox.checked ? '1' : '0');
-        updateImages(true); // Force update on checkbox change
-    });
-
-    windVectorCheckbox.addEventListener('change', function () {
-        localStorage.setItem('wv', windVectorCheckbox.checked ? '1' : '0');
-        updateImages(true); // Force update on checkbox change
-    });
-
-    awsCheckbox.addEventListener('change', function () {
-        localStorage.setItem('aws', awsCheckbox.checked ? '1' : '0');
-        updateImages(true); // Force update on checkbox change
-    });
-
-    topoCheckbox.addEventListener('change', function () {
-        localStorage.setItem('topo', topoCheckbox.checked ? '1' : '0');
-        updateImages(true); // Force update on checkbox change
-    });
-
-    lightningCheckbox.addEventListener('change', function () {
-        localStorage.setItem('lightning', lightningCheckbox.checked ? '1' : '0');
-        updateImages(true); // Force update on checkbox change
-    });
-
-    function updateTimeDisplays() {
-        const now = new Date();
-        const formattedNow = formatDate(now, "display");
-        nowDisplay.textContent = `현재: ${formattedNow}`;
-    }
-
-    function updateRefreshTime() {
-        const now = new Date();
-        const formattedNow = formatDate(now, "display");
-        lastRefresh.textContent = `갱신: ${formattedNow}`;
-    }
-
-    // 도분초를 도 단위로 변환하는 함수
-    function dmsToDecimal(dms) {
-        const parts = dms.split(/[^\d\w]+/);
-        const degrees = parseFloat(parts[0]);
-        const minutes = parseFloat(parts[1]) / 60 || 0;
-        const seconds = parseFloat(parts[2]) / 3600 || 0;
-        return degrees + minutes + seconds;
-    }
-
-    // 확인 버튼 클릭 이벤트 핸들러
-    document.getElementById('ok-button').addEventListener('click', function () {
+    // 확인 버튼 (좌표 설정)
+    okButton.addEventListener('click', () => {
         if (regionSelect.value !== '전국/선택지점[4시간]') {
             alert('전국/선택지점[4시간] 옵션에서만 좌표를 설정할 수 있습니다.');
             return;
         }
-
-        const latInput = document.getElementById('lat-display').value;
-        const lonInput = document.getElementById('lon-display').value;
-        const radInputValue = document.getElementById('rad-display').value;
-
-        latInput.value = 35.90;
-        lonInput.value = 127.80;
-
-        let lat = latInput;
-        let lon = lonInput;
-
-        if (latInput.includes('°') || latInput.includes("'") || latInput.includes('"')) {
-            lat = dmsToDecimal(latInput);
-        }
-        if (lonInput.includes('°') || lonInput.includes("'") || lonInput.includes('"')) {
-            lon = dmsToDecimal(lonInput);
-        }
-
-        radInputValue.value = 100;
-        
-        let validLat = lat >= 32 && lat <= 44;
-        let validLon = lon >= 123 && lon <= 131;
-        let validRad = radInputValue === '' || radInputValue > 0;
-
-        let errorMessage = '유효하지 않은 ';
-        let invalidFields = [];
-
-        if (!validLat) {
-            invalidFields.push('위도');
-        }
-        if (!validLon) {
-            invalidFields.push('경도');
-        }
-        if (!validRad) {
-            invalidFields.push('반경');
-        }
-
-        if (invalidFields.length > 0) {
-            errorMessage += invalidFields.join(', ') + ' 값입니다.';
-            alert(errorMessage);
+        let lat = latInput.value, lon = lonInput.value, rad = radInput.value;
+        if (lat.includes('°')||lat.includes("'")||lat.includes('"')) lat = dmsToDecimal(lat);
+        if (lon.includes('°')||lon.includes("'")||lon.includes('"')) lon = dmsToDecimal(lon);
+        latInput.value = lat.toFixed(2);
+        lonInput.value = lon.toFixed(2);
+        radInput.value = rad||'';
+        const validLat = lat>=32&&lat<=44;
+        const validLon = lon>=123&&lon<=131;
+        const validRad = rad===''||rad>0;
+        const invalid = [];
+        if (!validLat) invalid.push('위도');
+        if (!validLon) invalid.push('경도');
+        if (!validRad) invalid.push('반경');
+        if (invalid.length) {
+            alert('유효하지 않은 ' + invalid.join(', ') + ' 값입니다.');
         } else {
-            let currentZoom = selectedRegionConfig.url.match(/&zoom=([0-9.]+)/)[1];
-            let zoom = radInputValue === '' ? currentZoom : (574 * Math.pow(radInputValue, 1.001)).toFixed(2);
-            regionConfigs['전국/선택지점[4시간]'].url = `&lonlat=0&lat=${lat}&lon=${lon}&zoom=${zoom}&ht=1000`;
-            localStorage.setItem('region-select', '전국/선택지점[4시간]');
-            saveLatLonZoom(); // Save the new values
-            updateImages(true); // Force update on manual input
+            const curZoom = selectedRegionConfig.url.match(/&zoom=([0-9.]+)/)[1];
+            const newZoom = rad===''? curZoom : (574*Math.pow(rad,1.001)).toFixed(2);
+            regionConfigs['전국/선택지점[4시간]'].url =
+                `&lonlat=0&lat=${lat}&lon=${lon}&zoom=${newZoom}&ht=1000`;
+            localStorage.setItem('region-select','전국/선택지점[4시간]');
+            saveLatLonZoom();
+            updateImages(true);
         }
-        updateInputState(); // Update input state after setting values
+        updateInputState();
     });
 
-    // 기본값 버튼 클릭 이벤트 핸들러
-    document.getElementById('zero-button').addEventListener('click', function () {
-        // 기본값을 전국/선택지점[4시간]으로 설정하고 interval과 frames 수정
-        selectedRegionConfig = { url: "&lonlat=0&lat=35.90&lon=127.80&zoom=2&ht=1000", interval: 5, frames: 24 };
-        localStorage.setItem('region-select', '전국/선택지점[4시간]');
-        regionSelect.value = '전국/선택지점[4시간]';  // 드롭다운 메뉴도 기본값으로 설정
-        localStorage.removeItem('lat');
-        localStorage.removeItem('lon');
-        localStorage.removeItem('rad');
-        updateImages(true); // Force update on default selection
-        if (!isPlaying) {
-            startAutoPlay();
-            playPauseButton.textContent = '정지';
-            isPlaying = true;
-        }
-        location.reload(); // Refresh the page
+    // 기본값 복원
+    zeroButton.addEventListener('click', () => {
+        selectedRegionConfig = { url:"&lonlat=0&lat=35.90&lon=127.80&zoom=2&ht=1000", interval:5, frames:24 };
+        localStorage.setItem('region-select','전국/선택지점[4시간]');
+        regionSelect.value = '전국/선택지점[4시간]';
+        localStorage.removeItem('lat'); localStorage.removeItem('lon'); localStorage.removeItem('rad');
+        updateImages(true);
+        if (!isPlaying) { startAutoPlay(); playPauseButton.textContent='정지'; isPlaying=true; }
+        location.reload();
     });
 
-    // Initial load
-    updateInputState(); // Set initial input state
-    await updateImages(true); // Force initial update
+    // 시간 표시 업데이트
+    function updateTimeDisplays() {
+        nowDisplay.textContent = `현재: ${formatDate(new Date(), 'display')}`;
+    }
+    function updateRefreshTime() {
+        lastRefresh.textContent = `갱신: ${formatDate(new Date(), 'display')}`;
+    }
+
+    // DMS → Decimal 변환
+    function dmsToDecimal(dms) {
+        const p = dms.split(/[^\d\w]+/);
+        const deg = parseFloat(p[0]);
+        const min = parseFloat(p[1]) / 60 || 0;
+        const sec = parseFloat(p[2]) / 3600 || 0;
+        return deg + min + sec;
+    }
+
+    updateInputState();
+    await updateImages(true);
     updateTimeDisplays();
     updateRefreshTime();
+    speedDisplay.textContent = `${(speed/1000).toFixed(1)} s/frame`;
 
-    // Display the correct speed on page load
-    speedDisplay.textContent = `${(speed / 1000).toFixed(1)} s/frame`;
+    // 5분마다 자동 새로고침 (사용자 일시정지 아닐 때)
+    setInterval(() => { if (!userPaused) location.reload(); }, 300000);
 
-    // Auto refresh every 5 minutes (300,000 milliseconds) if not paused by user
-    setInterval(() => {
-        if (!userPaused) {
-            location.reload();
-        }
-    }, 300000); // Set back to 300000 milliseconds (5 minutes)
-
-    // Update now time every second
+    // 매초 현재 시간 갱신
     setInterval(updateTimeDisplays, 1000);
 });
