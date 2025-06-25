@@ -108,18 +108,20 @@ document.addEventListener('DOMContentLoaded', async function () {
         imageTimes = [];
 
         for (let i = 0; i < selectedRegionConfig.frames; i++) {
-            const date      = new Date(nowKST.getTime() - i * interval * 60000);
-            const tm        = formatDate(date);
-            const dynLat    = latParam ? `&lat=${latParam}` : '';
-            const dynLon    = lonParam ? `&lon=${lonParam}` : '';
-            const dynZoom   = radParam ? `&zoom=${(574*Math.pow(radParam,-1.001)).toFixed(2)}` : '';
-            const params    = `${dynLat}${dynLon}${dynZoom}`;
-            const url       = `${updateBaseURL()}&center=${centerCheckbox.checked?1:0}` +
-                              `&wv=${windVectorCheckbox.checked?1:0}` +
-                              `&aws=${awsCheckbox.checked?1:0}` +
-                              `&topo=${topoCheckbox.checked?1:0}` +
-                              `&lightning=${lightningCheckbox.checked?1:0}` +
-                              `${selectedRegionConfig.url}${params}&tm=${tm}`;
+            const date    = new Date(nowKST.getTime() - i * interval * 60000);
+            const tm      = formatDate(date);
+
+            let regionUrl = selectedRegionConfig.url;
+            if (latParam)  regionUrl = regionUrl.replace(/&lat=[^&]*/, `&lat=${latParam}`);
+            if (lonParam)  regionUrl = regionUrl.replace(/&lon=[^&]*/, `&lon=${lonParam}`);
+            if (radParam)  regionUrl = regionUrl.replace(/&zoom=[^&]*/, `&zoom=${(574*Math.pow(radParam,-1.001)).toFixed(2)}`);
+
+            const url = `${updateBaseURL()}&center=${centerCheckbox.checked?1:0}` +
+                        `&wv=${windVectorCheckbox.checked?1:0}` +
+                        `&aws=${awsCheckbox.checked?1:0}` +
+                        `&topo=${topoCheckbox.checked?1:0}` +
+                        `&lightning=${lightningCheckbox.checked?1:0}` +
+                        `${regionUrl}&tm=${tm}`;
             urls.push(url);
             imageTimes.push(date);
         }
