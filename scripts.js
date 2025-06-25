@@ -99,6 +99,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     // 이미지 URL 목록 생성
+    function mergeParams(url) {
+        const params = new URLSearchParams(url.replace(/^&/, ''));
+        if (latParam) params.set('lat', latParam);
+        if (lonParam) params.set('lon', lonParam);
+        if (radParam) params.set('zoom', (574*Math.pow(radParam,-1.001)).toFixed(2));
+        return '&' + params.toString();
+    }
+
     async function generateImageURLs() {
         const urls     = [];
         const nowKST   = await getInternetTime();
@@ -111,10 +119,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const date    = new Date(nowKST.getTime() - i * interval * 60000);
             const tm      = formatDate(date);
 
-            let regionUrl = selectedRegionConfig.url;
-            if (latParam)  regionUrl = regionUrl.replace(/&lat=[^&]*/, `&lat=${latParam}`);
-            if (lonParam)  regionUrl = regionUrl.replace(/&lon=[^&]*/, `&lon=${lonParam}`);
-            if (radParam)  regionUrl = regionUrl.replace(/&zoom=[^&]*/, `&zoom=${(574*Math.pow(radParam,-1.001)).toFixed(2)}`);
+            const regionUrl = mergeParams(selectedRegionConfig.url);
 
             const url = `${updateBaseURL()}&center=${centerCheckbox.checked?1:0}` +
                         `&wv=${windVectorCheckbox.checked?1:0}` +
@@ -314,13 +319,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (invalid.length) {
             alert('유효하지 않은 ' + invalid.join(', ') + ' 값입니다.');
         } else {
-            const curZoom = selectedRegionConfig.url.match(/&zoom=([0-9.]+)/)[1];
-            const newZoom = rad===''? curZoom : (574*Math.pow(rad,1.001)).toFixed(2);
-            regionConfigs['전국/선택지점[4시간]'].url =
-                `&lonlat=0&lat=${lat}&lon=${lon}&zoom=${newZoom}&ht=1000`;
-            localStorage.setItem('region-select','전국/선택지점[4시간]');
             saveLatLonZoom();
             updateImages(true);
+            setTimeout(() => location.reload(), 0);
         }
         updateInputState();
     });
