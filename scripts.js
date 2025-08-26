@@ -398,3 +398,4 @@ document.addEventListener('DOMContentLoaded', async function () {
     // 매초 현재 시간 갱신
     setInterval(updateTimeDisplays, 1000);
 });
+
